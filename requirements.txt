@@ -1,6 +1,4 @@
-fastapi
-uvicorn
-gradio
+gradio==4.44.1
 pymongo
 langchain
 langgraph
@@ -12,6 +10,5 @@ tavily-python
 python-dotenv
 sentence-transformers
 pymupdf
-starlette
 jinja2
 langfuse
