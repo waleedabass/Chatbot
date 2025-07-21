@@ -12,7 +12,7 @@ jobs:
       - name: Checkout full repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Required for pushing to Hugging Face (no shallow push)
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -30,9 +30,5 @@ jobs:
         run: |
           git config --global user.email "waleedabbas162404@gmail.com"
           git config --global user.name "waleedabass"
-
           git remote add space https://Waleed765:${HF_TOKEN}@huggingface.co/spaces/Waleed765/Chatbot-Rag || true
-          git remote -v
-
-          # Force push after full checkout to avoid shallow push error
           git push --force space main
