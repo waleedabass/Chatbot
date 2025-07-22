@@ -198,7 +198,7 @@ def create_gradio_app():
         upload.upload(take_file, upload)
         gr.ChatInterface(
             fn=chatbot,
-            title="MyChatbot",
+            title="chatbot",
             type="messages",
             additional_inputs=[inp],
         )
