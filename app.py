@@ -200,7 +200,6 @@ def create_gradio_app():
             fn=chatbot,
             title="chatbot",
             type="messages",
-            additional_inputs=[inp],
         )
     return demo
 
