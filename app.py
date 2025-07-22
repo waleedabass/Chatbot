@@ -207,4 +207,4 @@ def create_gradio_app():
 demo = create_gradio_app()
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)
