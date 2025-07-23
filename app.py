@@ -95,8 +95,7 @@ llm_with_tools = llm.bind_tools(tools)
 
 prompt_template = langfuse.get_prompt("react-agent-prompt")
 prompt = prompt_template.get_langchain_prompt()
-keywords = ["NETSOL", "Form 10-K", "NFS Ascent®", "Otoz™ Platform", "Asset Finance", "Leasing Software", "Subscription Model", "API-first Products", "Digital Retail", "Cloud Services", "Financial Statements", "Revenue Recognition"]
-new_prompt = Template(prompt).render(keywords=", ".join(keywords), formatted_history=chat_history)
+new_prompt = Template(prompt).render(formatted_history=chat_history)
 sys_msg = SystemMessage(content=new_prompt)
 
 # Assistant function using streaming
@@ -134,16 +133,19 @@ def extract_text_from_pdf(pdf_path):
 
 def take_file_call(file):
     dataset = extract_text_from_pdf(file)
-    print(f"Loaded {len(dataset)} chunks")
+    total_chunks = len(dataset)
     documents = []
+
     for i, chunk in enumerate(dataset):
         embedding = model.encode(f"passage: {chunk}")
         if hasattr(embedding, 'tolist'):
             embedding = embedding.tolist()
         documents.append({"chunk": chunk, "embedding": embedding})
-        print(f"Prepared chunk {i+1}/{len(dataset)}")
+        percent = int((i + 1) / total_chunks * 100)
+        yield percent, f"Uploading chunk {i+1}/{total_chunks}..."
+
     collection.insert_many(documents)
-    print("Inserted all chunks to MongoDB.")
+    yield 100, "File Uploaded"
 
 graph = build_graph()
 
@@ -181,21 +183,32 @@ def chatbot(prompt, history, token):
         Answer.append(full_response.strip())
         save_chat_history(prompt, full_response, token)
 
+def take_file(file):
+        for percent, status in take_file_call(file):
+            yield percent, status
 # Gradio Interface
 def create_gradio_app():
     def load_history(token):
         return html.escape("\n\n".join(chat_history(token)))
 
-    def take_file(file):
-        take_file_call(file)
-
     with gr.Blocks(theme=Glass) as demo:
-        gr.Markdown(""" Your Chat History """)
+        gr.Markdown("### Your Chat History")
         inp = gr.Textbox(placeholder="What is your token?")
         out = gr.Textbox()
         inp.change(load_history, inp, out)
-        upload = gr.UploadButton()
-        upload.upload(take_file, upload)
+
+        gr.Markdown("### Upload PDF to Embed")
+        upload = gr.UploadButton(label="Upload PDF")
+        progress_slider = gr.Slider(minimum=0, maximum=100, label="Upload Progress", interactive=False)
+        progress_text = gr.Textbox(label="Status", lines=2, interactive=False)
+
+        # Yielding both progress bar and text
+        upload.upload(
+            fn=take_file,
+            inputs=upload,
+            outputs=[progress_slider, progress_text]
+        )
+
         gr.ChatInterface(
             fn=chatbot,
             title="chatbot",
@@ -203,6 +216,7 @@ def create_gradio_app():
             additional_inputs=[inp]
         )
     return demo
+
 
 demo = create_gradio_app()
 
