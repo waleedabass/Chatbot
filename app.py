@@ -190,7 +190,7 @@ def take_file(file):
 def create_gradio_app():
     def load_history(token):
         return html.escape("\n\n".join(chat_history(token)))
-    
+    mychatbot=gr.Chatbot(height="60vh")
     with gr.Blocks(fill_height=True,theme=Glass) as demo:
         gr.Markdown("### Your Chat History")
         inp = gr.Textbox(placeholder="What is your token?")
@@ -214,6 +214,7 @@ def create_gradio_app():
             title="chatbot",
             type="messages",
             additional_inputs=[inp],
+            chatbot=mychatbot
         )
     return demo
 
