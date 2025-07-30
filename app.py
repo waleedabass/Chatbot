@@ -186,14 +186,21 @@ def chatbot(prompt, history, token):
 def take_file(file):
         for percent, status in take_file_call(file):
             yield percent, status
+
 # Gradio Interface
+custom_css = """
+    #my_chatbot_container {
+        height: 100% !important;
+        overflow-y: auto; /* Add scroll if content exceeds height */
+    }
+    """
 def create_gradio_app():
     def load_history(token):
         return html.escape("\n\n".join(chat_history(token)))
     mychatbot=gr.Chatbot(height="60vh")
-    with gr.Blocks(fill_height=True,theme=Glass) as demo:
+    with gr.Blocks(fill_height=True,css=custom_css,theme=Glass) as demo:
         gr.Markdown("### Your Chat History")
-        inp = gr.Textbox(placeholder="What is your token?")
+        inp = gr.Textbox(placeholder="What is your token?",elem_id="my_chatbot_container")
         out = gr.Textbox()
         inp.change(load_history, inp, out)
 
